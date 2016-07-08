@@ -13,6 +13,8 @@
 
 @interface ScrollMenuView ()<UIScrollViewDelegate>
 @property (nonatomic, strong) UIView *indicatorView;
+
+@property (copy, nonatomic) selectBlock block;
 @end
 
 @implementation ScrollMenuView
@@ -21,6 +23,7 @@
 {
     if (self = [super initWithFrame:frame]) {
         [self setUp];
+        
     }
     return self;
 }
@@ -37,7 +40,6 @@
 {
     UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
     scrollView.delegate = self;
-//    scrollView.showsVerticalScrollIndicator = NO;
     scrollView.showsHorizontalScrollIndicator = NO;
     [self addSubview:scrollView];
     self.scrollView = scrollView;
@@ -49,7 +51,7 @@
     self.menuViewWidth = 90;
     self.menuViewMargin = 10;
     self.indicatorHeight = 3;
-    self.backgroundColor = [UIColor whiteColor];
+    
 }
 
 
@@ -58,10 +60,13 @@
 - (void)setMenuTitles:(NSArray *)menuTitles
 {
     _menuTitles = menuTitles;
+    if ((KSCreenWidth - self.menuViewMargin) / menuTitles.count - (self.menuViewMargin + self.menuViewWidth) > 0) {
+        self.menuViewWidth = (KSCreenWidth - self.menuViewMargin) / menuTitles.count - self.menuViewMargin;
+    }
     NSMutableArray *itemViews = [NSMutableArray array];
+    
     for (int i = 0; i< menuTitles.count; i++) {
-        UILabel *itemView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.menuViewWidth, CGRectGetHeight(self.frame))];
-//        UILabel *itemView = [[UILabel alloc] initWithFrame:frame];
+        UILabel *itemView = [[UILabel alloc] init];
         [self.scrollView addSubview:itemView];
         itemView.tag = i;
         itemView.text = self.menuTitles[i];
@@ -75,11 +80,12 @@
         [itemView addGestureRecognizer:tapGesture];
         
         [itemViews addObject:itemView];
+        
     }
     self.itemViews = itemViews;
     
     _indicatorView = [[UIView alloc]init];
-    _indicatorView.frame = CGRectMake(10, _scrollView.frame.size.height - self.indicatorHeight, self.menuViewWidth, self.indicatorHeight);
+    
     _indicatorView.backgroundColor = self.menuIndicatorColor;
     [_scrollView addSubview:_indicatorView];
 }
@@ -114,38 +120,6 @@
 }
 
 
-//- (void)setItemTitleArray:(NSArray *)itemTitleArray
-//{
-//    if (_itemTitleArray != itemTitleArray) {
-//        _itemTitleArray = itemTitleArray;
-//        NSMutableArray *views = [NSMutableArray array];
-//        
-//        for (int i = 0; i < itemTitleArray.count; i++) {
-//            CGRect frame = CGRectMake(0, 0, self.menuViewWidth, CGRectGetHeight(self.frame));
-//            UILabel *itemView = [[UILabel alloc] initWithFrame:frame];
-//            [self.scrollView addSubview:itemView];
-//            itemView.tag = i;
-//            itemView.text = itemTitleArray[i];
-//            itemView.userInteractionEnabled = YES;
-//            itemView.backgroundColor = [UIColor clearColor];
-//            itemView.textAlignment = NSTextAlignmentCenter;
-//            itemView.font = self.itemfont;
-//            itemView.textColor = _itemTitleColor;
-//            [views addObject:itemView];
-//            
-//            UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(itemViewTapAction:)];
-//            [itemView addGestureRecognizer:tapGesture];
-//        }
-//        
-//        self.itemViewArray = [NSArray arrayWithArray:views];
-//        
-//        // indicator
-//        _indicatorView = [[UIView alloc]init];
-//        _indicatorView.frame = CGRectMake(10, _scrollView.frame.size.height - kYSLIndicatorHeight, self.menuViewWidth, kYSLIndicatorHeight);
-//        _indicatorView.backgroundColor = self.itemIndicatorColor;
-//        [_scrollView addSubview:_indicatorView];
-//    }
-//}
 
 #pragma mark -- public
 
@@ -162,32 +136,6 @@
         return;
     }
     _indicatorView.frame = CGRectMake(indicatorX, _scrollView.frame.size.height - self.indicatorHeight, self.menuViewWidth, self.indicatorHeight);
-    //  NSLog(@"retio : %f",_indicatorView.frame.origin.x);
-}
-
-- (void)setItemTextColor:(UIColor *)itemTextColor
-    seletedItemTextColor:(UIColor *)selectedItemTextColor
-            currentIndex:(NSInteger)currentIndex
-{
-    if (itemTextColor) { self.menuItemTitleColor = itemTextColor; }
-    if (selectedItemTextColor) { self.menuItemSelectedTitleColor = selectedItemTextColor; }
-    
-    for (int i = 0; i < self.itemViews.count; i++) {
-        UILabel *label = self.itemViews[i];
-        if (i == currentIndex) {
-            label.alpha = 0.0;
-            [UIView animateWithDuration:0.75
-                                  delay:0.0
-                                options:UIViewAnimationOptionCurveLinear | UIViewAnimationOptionAllowUserInteraction
-                             animations:^{
-                                 label.alpha = 1.0;
-                                 label.textColor = self.menuItemSelectedTitleColor;
-                             } completion:^(BOOL finished) {
-                             }];
-        } else {
-            label.textColor = self.menuItemTitleColor;
-        }
-    }
 }
 
 - (void)menuViewDidSelectIndex:(NSInteger)index
@@ -230,11 +178,16 @@
 {
     [super layoutSubviews];
     
+//    return;
+    self.scrollView.frame = self.bounds;
+    
+    _indicatorView.frame = CGRectMake(10, _scrollView.frame.size.height - self.indicatorHeight, self.menuViewWidth, self.indicatorHeight);
+    
     CGFloat x = self.menuViewMargin;
     for (NSUInteger i = 0; i < self.itemViews.count; i++) {
         CGFloat width = self.menuViewWidth;
         UILabel *itemView = self.itemViews[i];
-        itemView.frame = CGRectMake(x, 0, width, self.scrollView.frame.size.height);
+        itemView.frame = CGRectMake(x, 0, width, CGRectGetHeight(self.frame));
         x += width + self.menuViewMargin;
     }
     self.scrollView.contentSize = CGSizeMake(x, self.scrollView.frame.size.height);
@@ -250,11 +203,17 @@
     self.scrollView.frame = frame;
 }
 
-#pragma mark -- Selector --------------------------------------- //
+#pragma mark -- Selector
 - (void)itemViewTapAction:(UITapGestureRecognizer *)Recongnizer
 {
-//    if (self.delegate && [self.delegate respondsToSelector:@selector(scrollMenuViewSelectedIndex:)]) {
-//        [self.delegate scrollMenuViewSelectedIndex:[(UIGestureRecognizer*) Recongnizer view].tag];
-//    }
+    if (self.block) {
+        NSInteger index = [(UIGestureRecognizer*) Recongnizer view].tag;
+        self.block(index);
+    }
+}
+
+- (void)menuViewDidSelectIndex:(selectBlock)select
+{
+    self.block = select;
 }
 @end

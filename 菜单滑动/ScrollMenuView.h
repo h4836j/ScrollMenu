@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+typedef void(^selectBlock)(NSInteger index);
+
 @interface ScrollMenuView : UIView
 
 @property (strong, nonatomic) UIScrollView *scrollView;
@@ -33,16 +35,16 @@
 /** 底部横线高度，默认为3 */
 @property (assign, nonatomic) double indicatorHeight;
 
-//static const CGFloat kYSLScrollMenuViewWidth  = 90;
-//static const CGFloat kYSLScrollMenuViewMargin = 10;
-//static const CGFloat kYSLIndicatorHeight = 3;
+
 
 /**
  *  菜单栏选中了第几个视图
  */
-- (void)menuViewDidSelectIndex:(NSInteger)index;
+- (void)menuViewDidSelectIndex:(selectBlock)select;
+
+
 /**
- *  菜单栏选中了第几个视图
+ *  选中了菜单栏的第几个视图
  *
  *  @param index       选中的索引
  *  @param titleColor  字体颜色

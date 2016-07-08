@@ -9,6 +9,8 @@
 #import "ContainerViewController.h"
 #import "ScrollMenuView.h"
 
+//#define WeakSelf __weak typeof(self) weakSelf = self;
+
 #define KSCreenWidth  [UIScreen mainScreen].bounds.size.width
 #define KSCreenHeight [UIScreen mainScreen].bounds.size.height
 @interface ContainerViewController ()<UIScrollViewDelegate>
@@ -32,6 +34,8 @@
     
     self.menuHeight = 40;
     
+    [self setUpScrollView];
+    [self setUpMenuView];
     
     
 }
@@ -43,6 +47,19 @@
     if (self = [super init]) {
         self.childViewControllers = controllers;
         self.topBarHeight = topBarHeight;
+        
+        [parentViewController addChildViewController:self];
+        [self didMoveToParentViewController:parentViewController];
+        
+        _topBarHeight = topBarHeight;
+        self.childViewControllers = controllers;
+        
+        NSMutableArray *titles = [NSMutableArray array];
+        for (UIViewController *vc in self.childViewControllers) {
+            [titles addObject:[vc valueForKey:@"title"]];
+        }
+        self.menuTitles = [titles copy];
+        
     }
     return self;
 }
@@ -52,7 +69,7 @@
     UIScrollView *scrollView = [[UIScrollView alloc] init];
     [self.view addSubview:scrollView];
     CGFloat scrollX = 0;
-    CGFloat scrollY = self.topBarHeight + self.menuHeight;
+    CGFloat scrollY = self.menuHeight;
     CGFloat scrollW = KSCreenWidth;
     CGFloat scrollH = KSCreenHeight - scrollY;
     scrollView.frame = CGRectMake(scrollX, scrollY, scrollW, scrollH);
@@ -85,12 +102,36 @@
     [self.view addSubview:menuView];
     self.menuView = menuView;
     
+    
     menuView.menuTitles = self.menuTitles;
     menuView.menuItemFont = self.menuItemFont;
     menuView.menuItemTitleColor = self.menuItemTitleColor;
     menuView.menuBackGroudColor = self.menuBackGroudColor;
     menuView.menuIndicatorColor = self.menuIndicatorColor;
     menuView.menuItemSelectedTitleColor = self.menuItemSelectedTitleColor;
+    
+    __weak typeof(self) weakSelf = self;
+    [menuView menuViewDidSelectIndex:^(NSInteger index) {
+        
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        
+        // 设置contentOffset有点问题
+        [strongSelf.scrollView setContentOffset:CGPointMake(index * strongSelf.scrollView.frame.size.width, -strongSelf.topBarHeight) animated:YES];
+        
+        [strongSelf.menuView menuViewDidSelectIndex:index titleColor:strongSelf.menuItemTitleColor selectTitleColor:strongSelf.menuItemSelectedTitleColor];
+        
+        if (index == strongSelf.currentIndex) { return; }
+        
+        [strongSelf setChildViewControllerWithCurrentIndex:index];
+        
+        strongSelf.currentIndex = index;
+        
+        if (strongSelf.block) {
+            strongSelf.block(strongSelf, index, strongSelf.childViewControllers[strongSelf.currentIndex]);
+        }
+    }];
+    
+    [self.menuView menuViewDidSelectIndex:0 titleColor:self.menuItemTitleColor selectTitleColor:self.menuItemSelectedTitleColor];
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -176,7 +217,10 @@
 
 
 
-
+- (void)test:(containerBlock)contain
+{
+    self.block = contain;
+}
 
 
 
