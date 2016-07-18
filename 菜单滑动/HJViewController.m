@@ -61,7 +61,7 @@
                                                                           parentViewController:self];
     //    containerVC.delegate = self;
     containerVC.menuItemFont = [UIFont fontWithName:@"Futura-Medium" size:16];
-    [containerVC test:^(ContainerViewController *vc, NSInteger index, UIViewController *currentVC) {
+    [containerVC changView:^(ContainerViewController *vc, NSInteger index, UIViewController *currentVC) {
         [currentVC viewWillAppear:YES];
     }];
     [self.view addSubview:containerVC.view];

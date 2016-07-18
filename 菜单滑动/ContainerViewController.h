@@ -13,8 +13,6 @@ typedef void(^containerBlock)(ContainerViewController *vc, NSInteger index, UIVi
 
 @interface ContainerViewController : UIViewController
 
-
-
 /** 子控制器数组 */
 @property (strong, nonatomic) NSArray *childViewControllers;
 /** 标题数组 */
@@ -32,7 +30,7 @@ typedef void(^containerBlock)(ContainerViewController *vc, NSInteger index, UIVi
 /** 控制器顶部高度（导航栏和状态栏之和）（64/0） */
 @property (assign, nonatomic) double topBarHeight;
 
-- (void)test:(containerBlock)contain;
+- (void)changView:(containerBlock)contain;
 
 /**
  *  初始化方法创建控制器

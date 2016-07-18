@@ -51,19 +51,22 @@
         [parentViewController addChildViewController:self];
         [self didMoveToParentViewController:parentViewController];
         
-        _topBarHeight = topBarHeight;
+//        _topBarHeight = topBarHeight;
         self.childViewControllers = controllers;
         
         NSMutableArray *titles = [NSMutableArray array];
+        // 便利子控制器，得到控制器的标题数组
         for (UIViewController *vc in self.childViewControllers) {
             [titles addObject:[vc valueForKey:@"title"]];
         }
+        // 赋值给标题数组
         self.menuTitles = [titles copy];
         
     }
     return self;
 }
 
+// 设置主ScrollView
 - (void)setUpScrollView
 {
     UIScrollView *scrollView = [[UIScrollView alloc] init];
@@ -74,12 +77,14 @@
     CGFloat scrollH = KSCreenHeight - scrollY;
     scrollView.frame = CGRectMake(scrollX, scrollY, scrollW, scrollH);
     self.scrollView = scrollView;
+    // 根据子控制器的个数设置 contentSize
     scrollView.contentSize = CGSizeMake([UIScreen mainScreen].bounds.size.width * self.childViewControllers.count, 0);
     scrollView.showsVerticalScrollIndicator = NO;
     scrollView.showsHorizontalScrollIndicator = NO;
     scrollView.pagingEnabled = YES;
     self.scrollView.delegate = self;
     
+    // 遍历子控制器数组，设置子控制器View的frame，并将他们添加到scrollView中
     for (int i = 0; i < self.childViewControllers.count; i++) {
         id obj = [self.childViewControllers objectAtIndex:i];
         if ([obj isKindOfClass:[UIViewController class]]) {
@@ -94,7 +99,7 @@
     
 }
 
-
+// 设置菜单View
 - (void)setUpMenuView
 {
     ScrollMenuView *menuView = [[ScrollMenuView alloc] init];
@@ -131,6 +136,7 @@
         }
     }];
     
+    // 默认选择第一个
     [self.menuView menuViewDidSelectIndex:0 titleColor:self.menuItemTitleColor selectTitleColor:self.menuItemSelectedTitleColor];
 }
 
@@ -217,7 +223,7 @@
 
 
 
-- (void)test:(containerBlock)contain
+- (void)changView:(containerBlock)contain
 {
     self.block = contain;
 }
